@@ -1,0 +1,4 @@
+Model: CLIP ViT-B/32 by OpenAI (https://github.com/openai/CLIP), MIT License, Copyright (c) 2021 OpenAI.
+ONNX conversion/quantization: Xenova/clip-vit-base-patch32 on Hugging Face (MIT), pinned revision 6b7c523703ae26e39be4b03774966f8571c7f523.
+The model files are downloaded by download_models.py and are not included in this package.
+CLIP is a general zero-shot model: it can be wrong or biased, especially on people, so treat the sorting as a convenience, not a judgment.

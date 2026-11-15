@@ -2,3 +2,4 @@ onnxruntime
 tokenizers
 numpy
 Pillow
+# optional: pillow-heif  (iPhone .HEIC photos; untested)

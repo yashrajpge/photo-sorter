@@ -8,6 +8,8 @@ Everything runs on your own machine after a one-time ~155 MB model download.
 Your photos never leave your computer. Originals are only read — never moved,
 renamed or deleted. Export is opt-in and copy-only.
 
+![Photo Sorter UI](https://github.com/user-attachments/assets/b511ad28-1e32-49e7-a34c-c4bcf087a3d5)
+
 ## How it works
 
 - `engine.py` embeds each photo and each category's text prompts with CLIP

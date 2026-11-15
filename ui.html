@@ -1,0 +1,74 @@
+<!doctype html><html><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Photo Sorter</title>
+<style>
+:root{
+  --bg:#0b0d11; --surface:#14171e; --surface-2:#1a1e27; --border:#262b36;
+  --text:#e9ebef; --muted:#9aa1ad; --accent:#6ee7a8; --accent-dim:#1d3b2c;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);
+  font:15px/1.5 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",sans-serif;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+header{padding:22px 28px 20px;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;gap:28px;flex-wrap:wrap}
+h1{font-size:19px;font-weight:650;letter-spacing:-0.02em;margin:0}
+.stat{display:flex;align-items:baseline;gap:7px}
+#count{font-size:30px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;letter-spacing:-0.02em}
+.stat small{color:var(--muted);font-size:13px}
+#bar{flex:1;min-width:140px;height:5px;background:var(--surface-2);border-radius:99px;overflow:hidden}
+#fill{height:100%;background:linear-gradient(90deg,#4ade80,#6ee7a8);border-radius:99px;width:0;transition:width .45s ease}
+#root{color:var(--muted);font-size:12px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:3px 9px;
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+nav{display:flex;gap:8px;flex-wrap:wrap;padding:16px 28px 6px}
+nav button{background:var(--surface);color:var(--muted);border:1px solid var(--border);
+  border-radius:99px;padding:7px 15px;font-size:13.5px;font-weight:550;cursor:pointer;
+  transition:background .15s ease,color .15s ease,border-color .15s ease,transform .1s ease}
+nav button:hover{background:var(--surface-2);color:var(--text)}
+nav button:active{transform:scale(.97)}
+nav button.on{background:var(--accent);color:#0b1510;border-color:var(--accent);font-weight:650}
+nav button:focus-visible,.btn:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:14px;padding:18px 28px 28px}
+.c{position:relative;background:var(--surface);border:1px solid var(--border);border-radius:12px;
+  overflow:hidden;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.c:hover{transform:translateY(-3px);border-color:#333a48;box-shadow:0 10px 28px -8px #000c}
+.c img{width:100%;height:158px;object-fit:cover;display:block}
+.c span{position:absolute;left:0;right:0;bottom:0;padding:18px 10px 7px;font-size:11px;color:#d5d9e0;
+  background:linear-gradient(transparent,#000b);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+footer{padding:18px 28px 26px;border-top:1px solid var(--border);display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+footer>small{color:var(--muted);max-width:520px;font-size:12.5px}
+input{background:var(--surface);color:var(--text);border:1px solid var(--border);border-radius:8px;
+  padding:9px 13px;min-width:280px;font-size:14px;transition:border-color .15s ease}
+input::placeholder{color:#5d6470}
+input:hover{border-color:#333a48}
+.btn{background:var(--accent);color:#0b1510;border:0;border-radius:8px;padding:10px 18px;
+  font-size:14px;font-weight:650;cursor:pointer;transition:filter .15s ease,transform .1s ease}
+.btn:hover{filter:brightness(1.07)}
+.btn:active{transform:scale(.97)}
+#msg{color:var(--muted);font-size:13px}
+@media(max-width:640px){
+  header{padding:18px 18px 16px;gap:16px}
+  nav{padding:14px 18px 4px}
+  #grid{grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:10px;padding:14px 18px 22px}
+  .c img{height:112px}
+  footer{padding:16px 18px 22px}
+  input{min-width:0;flex:1}
+}
+</style></head><body>
+<header><h1>Photo Sorter</h1><div class="stat"><span id="count">0</span><small>sorted of <span id="total">0</span></small></div><div id="bar"><div id="fill"></div></div><span id="root"></span></header>
+<nav id="tabs"></nav><div id="grid"></div>
+<footer><small>Labels come from a general AI model and can be wrong. Originals are never changed. Export copies files into category folders.</small>
+<input id="dest" placeholder="Export folder (outside your photo folder), e.g. ~/Sorted"><button class="btn" onclick="exp()">Copy into folders</button><small id="msg"></small></footer>
+<script>
+let cur=null,data=null;
+async function poll(){const r=await fetch('/api/state');data=await r.json();render();if(!data.finished)setTimeout(poll,700)}
+function render(){document.getElementById('count').textContent=data.done;document.getElementById('total').textContent=data.total;
+document.getElementById('fill').style.width=(data.total?100*data.done/data.total:100)+'%';document.getElementById('root').textContent=data.root+(data.error?' ERROR '+data.error:'');
+const names=Object.keys(data.cats).sort((a,b)=>data.cats[b].length-data.cats[a].length);if(!cur||!data.cats[cur])cur=names[0];
+const t=document.getElementById('tabs');t.innerHTML='';names.forEach(n=>{const b=document.createElement('button');b.textContent=n+' ('+data.cats[n].length+')';b.className=n==cur?'on':'';b.onclick=()=>{cur=n;render()};t.appendChild(b)});
+const g=document.getElementById('grid');g.innerHTML='';(data.cats[cur]||[]).forEach(([i,s,p])=>{const d=document.createElement('div');d.className='c';d.title=p+' (CLIP match score '+s.toFixed(2)+', not an accuracy measure)';d.innerHTML='<img loading="lazy" src="/thumb?i='+i+'"><span>'+p.split('/').pop()+'</span>';g.appendChild(d)})}
+async function exp(){const dest=document.getElementById('dest').value;const m=document.getElementById('msg');m.textContent='copying...';
+const r=await fetch('/api/export',{method:'POST',headers:{'Content-Type':'application/json','X-Token':'__TOKEN__'},body:JSON.stringify({dest})});const j=await r.json();m.textContent=j.error||('Copied '+j.copied+' files to '+j.dest)}
+poll();
+</script></body></html>

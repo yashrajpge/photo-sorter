@@ -1,0 +1,13 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# Downloaded CLIP model files (~155 MB) - fetched by download_models.py
+models/
+
+# Per-folder classification cache written by app.py
+cache-*.json
+
+# OS
+.DS_Store
